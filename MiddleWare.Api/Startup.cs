@@ -21,20 +21,40 @@ namespace MiddleWare.Api
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (env.IsDevelopment())
+            
+             
+            app.Use(async (context,next) =>
             {
-                app.UseDeveloperExceptionPage();
-            }
+                await context.Response.WriteAsync("Response from First middleWare");
+                await context.Response.WriteAsync("<br>");
 
-            app.UseRouting();
+                await context.Response.WriteAsync("Response from second middleWare");
+                await next();
+            });
 
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapGet("/", async context =>
-                {
-                    await context.Response.WriteAsync("Hello World!");
+
+            app.UseWhen(context => context.Request.Query.ContainsKey("roler"), a => {
+            a.Run(async context => {
+                await context.Response.WriteAsync($"<br><H1>Role is {context.Request.Query["role"]} </H1>");
                 });
             });
+
+
+            app.Map("/Telepatia", a => {
+                a.Run(async context => { await context.Response.WriteAsync("New Branch Map"); });
+            });
+
+
+            app.UseMiddleware<CustomMiddleware>();
+
+            app.UseExtension();
+
+           
+
+
+
+
         }
     }
+
 }
